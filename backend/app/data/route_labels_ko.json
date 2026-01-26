@@ -1,0 +1,123 @@
+{
+    "domain_l1" :{
+        "CAR_PED":"자동차-보행자",
+        "CAR_CAR":"자동차-자동차",
+        "CAR_BIK":"자동차-자전거"
+    },
+    "route_l2":{
+        "SIG_IN_CW" : "횡단보도 내(신호등있음)",
+        "NOT_SIG_IN_CW" : "횡단보도 내(신호등없음)",
+        "SIG_IN_NCW" : "횡단보도 부근(신호등있음)",
+        "NOT_SIG_IN_NCW" : "횡단시설 부근(신호등없음)",
+        "NONE_CW":"횡단보도 없음",
+        "PED_ETC" : "기타사고유형",
+        "CAR_CR" : "교차로(+자,T자) 사고",
+        "CAR_OP_WAY" : "마주보는 방향 진행 사고",
+        "CAR_SAME_WAY" : "같은 방향 진행 사고",
+        "CAR_ETC" : "기타 주차장,회전교차로",
+        "CAR_TWO" : "자동차 대 이륜차 특수유형",
+        "BIK_CR" : "교차로(+자로, T자로 등) 사고",
+        "BIK_OP_WAY" : "마주보는 방향 진행차량 상호 간의 사고",
+        "BIK_SAME_WAY" : "같은 방향 진행차량 상호 간의 사고",
+        "BIK_ETC" : "기타 유형의 사고"
+    },
+    "route_l3":{
+        "CAR_GREEN_AFTER_CR" : "차 녹색신호 교차로 통과 후",
+        "CAR_ORANGE_AFTER_CR" : "차 황색신호 교차로 통과 후",
+        "CAR_RED_AFTER_CR" : "차 적색신호 교차로 통과 후",
+        "CAR_BEFORE_CR" : "자동차 교차로 통과 전",
+
+        "WALK_PED": "횡단보도 내(신호등 없음) 보행자 횡단",
+        "CAR_ST_AFTER_CW" : "직진(좌회전) 자동차 횡단보도 통과 후",
+        "CAR_R_AFTER_CW" : "우회전 자동차 횡단보도 통과 후",
+        "CAR_BEFORE_CW" : "자동차 횡단보도 통과 전",
+        
+        "NCW_PED" : "횡단시설 부근(신호등 없음) 보행자 횡단",
+        "CT_CAR_ROAD" : "도로 유형별(교차로,단일로)",
+        "PC_LINE" : "보도와 차도(구분 있음)",
+        "PC_NO_LINE" : "보도와 차도(구분 없음)",
+
+        "PED_SE_ETC" : "기타 유형(보행자 전용도로, 차도가 아닌 곳 등)",
+
+        "C_SIGNALIZED_BOTH" : "양쪽 신호등 있는 교차로",
+        "C_SIGNALIZED_ONE_SIDE" : "한쪽 신호 교차로 측면진입",
+        "C_SIGNS_ONLY_INTERSECTION" : "한쪽 지시표지 있는 교차로",
+        "C_INTERSECTION_MARKING_VIOLATION" : "교차로 노면 표시 위반",
+        "C_UNSIGNALIZED_INTERSECTION" : "신호등 없는 교차로",
+        "C_SIMULTANEOUS_TURNS" : "교차로 부근 동시 우회전 내지 좌회전 사고",
+        "C_CL_CENTER_INV" : "중앙선 침범 사고",
+        "C_CL_NOT_CENTER" : "중앙선 없거나 중앙선침범 미적용 도로에서 교행 사고",
+        "C_UT_STRAIGHT_U" : "직진(우회전)차와 유턴차 사이의 사고",
+
+        "C_REAR_NO_DISTANCE" : "안전거리미확보로 인한 추돌사고",
+        "C_REAR_PARKED": "주정차 차량 추돌사고",
+        "C_LANE_CHANGE" : "진로변경 사고",
+        "C_MERGE_STRAIGHT" : "도로로 진입하는 차와 직진차와의 사고",
+        "C_NO_OVERTAKE" : "앞지르기 금지 장소에서 추월사고",
+        "C_UT_LEAD_FOLLOW" :  "선행 유턴 대 후행 유턴 사고",
+        "C_START_STRAIGHT" : "정차 후 출발 대 직진(우회전) 사고",
+        "C_FALLING_OBJECT" : "낙하물 사고",
+
+        "C_PARKING_LOT" : "주차장 사고",
+        "C_DOOR_OPEN" : "문 열림 사고",
+        "C_CROSSWALK_CAR" : "횡단보도 횡단 차량",
+        "C_ROUNDABOUT" : "회전교차로 사고",
+        "C_EMERGENCY_CAR" : "긴급자동차 사고",
+        "C_CAR_TWO_CT" : "자동차 대 이륜차 특수유형",
+
+        "B_SIGNALIZED_BOTH" : "양쪽 신호등 있는 교차로",
+        "B_SIGNS_ONLY_INTERSECTION" : "한쪽 지시표지 있는 교차로",
+        "B_UNSIGNALIZED_INTERSECTION" : "신호등 없는 교차로",
+        "B_SAME_LANE_COLLISION" : "동일차로 통행 중 사고",
+        "B_CENTER_INV" : "중앙선 침범 사고",
+        "B_REAR_NO_DISTANCE" : "안전거리미확보로 인한 추돌사고",
+        "B_LANE_CHANGE" : "진로변경 사고",
+        "B_MERGE_STRAIGHT" : "도로로 진입하는 차와 직진차와의 사고",
+
+        "BIKE_ROAD_CROSS" : "자전거의 자동차 도로횡단 사고",
+        "BIKE_CYCLE_CROSS" : "자전거횡단도로 횡단사고",
+        "BIKE_ROAD" : "자전거도로 사고"
+    },
+    "route_l4":{
+        "C_STRAIGHT_VS_STRAIGHT_SIDE_ENTRY" : "직진 대 직진 사고 - 상대차량이 측면에서 진입",
+        "C_STRAIGHT_VS_LEFT_OPPOSITE_ENTRY" : "직진 대 좌회전 사고 - 상대차량이 맞은편에서 진입",
+        "C_STRAIGHT_VS_LEFT_SIDE_ENTRY": "직진 대 좌회전 사고 - 상대차량이 측면 방향에서 진입",
+        "C_STRAIGHT_VS_RIGHT_SIDE_ENTRY" : "좌회전 대 우회전 - 상대차량이 맞은편에서 진입",
+
+        "C_STRAIGHT_VS_RIGHT_TURN" : "직진 대 우회전 사고",
+        "C_STRAIGHT_VS_STRAIGHT_OR_LEFT" : "직진 대 직진(좌회전 포함) 사고",
+
+        "C_STRAIGHT_VS_STRAIGHT_SIGN" : "직진 대 직진",
+        "C_STRAIGHT_VS_LEFT_SIGN" : "직진 대 좌회전",
+        "C_STRAIGHT_VS_RIGHT_SIGN" : "직진 대 우회전",
+        "C_LEFT_VS_LEFT_STOP_VIOLATION" : "좌회전 대 일시정지위반 좌회전",
+
+        "C_ROAD_MARKING_VIOLATION" : "교차로 노면 표시 위반 사고",
+
+        "C_STRAIGHT_VS_STRAIGHT_NO_SIGNAL" : "직진 대 직진 사고",
+        "C_STRAIGHT_VS_RIGHT_SIDE_NO_SIGNAL" : "직진 대 우회전 사고 - 상대차량이 측면에서 진입",
+        "C_STRAIGHT_VS_RIGHT_OPPOSITE_NO_SIGNAL" : "직진 대 우회전 사고 - 상대차량이 맞은편에서 진입",
+        "C_STRAIGHT_VS_LEFT_OPPOSITE_NO_SIGNAL" : "직진 대 좌회전 사고 - 상대차량이 맞은편에서 진입 ",
+        "C_STRAIGHT_VS_LEFT_SIDE_NO_SIGNAL" : "직진 대 좌회전 사고 - 상대차량이 측면에서 진입",
+        "C_LEFT_VS_LEFT_NO_SIGNAL" : "좌회전 대 좌회전",
+        "C_LEFT_VS_RIGHT_NO_SIGNAL" : "좌회전 대 우회전",
+        
+        "C_PARALLEL_LANE_TURN_ACCIDENT" : "2개 차량이 나란히 통행 가능한 차로폭에서의 사고",
+        "C_SIMULTANEOUS_RIGHT_TURN" : "동시 우회전 사고",
+        "C_SIMULTANEOUS_LEFT_TURN" : "동시 좌회전 사고",
+
+        "B_STRAIGHT_VS_STRAIGHT_SIDE_ENTRY" : "직진 대 직진 사고 - 상대측이 측면에서 진입",
+        "B_STRAIGHT_VS_LEFT_OPPOSITE_ENTRY" : "직진 대 좌회전 사고 - 상대측이 맞은편에서 진입",
+
+        "B_STRAIGHT_VS_STRAIGHT_SIGN" : "직진 대 직진 사고",
+        "B_STRAIGHT_VS_LEFT_SIGN" : "직진 대 좌회전 사고",
+        "B_STRAIGHT_VS_RIGHT_SIGN" : "직진 대 우회전 사고",
+
+        "B_STRAIGHT_VS_STRAIGHT_NO_SIGNAL" : "직진 대 진진 사고",
+        "B_STRAIGHT_VS_RIGHT_SIDE_NO_SIGNAL" : "직진 대 우회전 사고",
+        "B_STRAIGHT_VS_LEFT_OPPOSITE_NO_SIGNAL" : "직진 대 좌회전 사고",
+        "B_STRAIGHT_VS_LEFT_SIDE_NO_SIGNAL" : "직진 대 좌회전 사고 - 상대측이 측면에서 진입",
+
+        "B_INT_RT_STRAIGHT" : "교차로 부근 선행 우회전 대 후행 직진 사고"
+    }
+}

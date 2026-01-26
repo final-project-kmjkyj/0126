@@ -1,0 +1,21 @@
+# secrets
+.env
+.env.*
+
+# python
+__pycache__/
+*.pyc
+
+# jupyter
+.ipynb_checkpoints/
+
+# logs
+*.log
+
+# model / embedding
+*.bin
+*.pt
+*.onnx
+
+# os
+.DS_Store
