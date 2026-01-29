@@ -1,0 +1,31 @@
+## 실행방법 # venv 활성화된 상태라고 가정
+#pip install -r requirements.txt
+
+## 백엔드 실행(backend 폴더 기준 import가 더 깔끔함)
+#cd backend
+#uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+
+# --- API ---
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# --- Settings / Validation ---
+pydantic==2.8.2
+pydantic-settings==2.4.0
+python-dotenv==1.0.1
+
+# --- Data handling (CSV 룰 필터링) ---
+pandas==2.2.2
+numpy==2.0.1
+
+# --- Neo4j / HTTP ---
+requests==2.32.3
+
+# --- OpenAI Embedding ---
+openai==1.40.6
+
+# --- Optional: MySQL run-log 저장용 (선택) ---
+pymysql==1.1.1
+SQLAlchemy==2.0.32
+
