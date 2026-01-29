@@ -26,3 +26,9 @@ venv/
 __pycache__/
 *.pyc
 kmjkyj/
+
+.env
+venv/
+__pycache__/
+*.pyc
+kmjkyj/
