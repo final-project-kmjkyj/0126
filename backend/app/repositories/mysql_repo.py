@@ -149,3 +149,48 @@ class MySQLCasesRepo:
             with c.cursor() as cur:
                 cur.execute(sql, params)
                 return [CaseTitle(**r) for r in cur.fetchall()]
+            
+    def list_help_questions(self, domain_l1, route_l2=None, route_l3=None, route_l4=None):
+        """
+        현재 버킷(route 조건) 안에서 question이 존재하는 row만 가져온다.
+        - question은 201건 중 82건만 존재하므로, 버킷에 따라 0개 나올 수 있음.
+        """
+        where, params = self._where(domain_l1, route_l2, route_l3, route_l4)
+        sql = f"""
+        SELECT case_code, title, question, url
+        FROM cases
+        WHERE {where}
+          AND question IS NOT NULL
+          AND question <> ''
+        ORDER BY case_code
+        """
+        with self._conn() as c:
+            with c.cursor() as cur:
+                cur.execute(sql, params)
+                return cur.fetchall()
+
+    def get_case_detail(self, case_code: str) -> Dict[str, Any]:
+        """
+        case_code로 정본(Full text) 상세를 가져온다.
+        - 최종 확정 후 출력용 (과실비율/해설/사고상황/법규/판례 등)
+        """
+        sql = """
+        SELECT
+          domain_l1, case_code, route_l2, route_l3, route_l4, title,
+          participants_text, base_fault_text, base_fault_ratio_json,
+          adjustment_text, accident_text,
+          base_fault_explanation, modifier_explanation,
+          related_law, precedent,
+          url, question
+        FROM cases
+        WHERE case_code = %s
+        LIMIT 1
+        """
+        with self._conn() as c:
+            with c.cursor() as cur:
+                cur.execute(sql, (case_code,))
+                row = cur.fetchone()
+                return row or {}
+
+            
+        
