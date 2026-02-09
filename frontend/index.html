@@ -1,7 +1,430 @@
-<!--
-frontend/index.html
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>교통사고 과실비율 PoC</title>
 
-[역할]
-- React 앱이 붙는 “빈 껍데기 HTML”
-- 실제 UI는 TSX 컴포넌트가 렌더링함
--->
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e6e8ef;
+      --shadow: 0 6px 24px rgba(17,24,39,.08);
+      --radius:16px;
+
+      --accent:#4f46e5;
+      --accent2:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --ink:#0b1020;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Apple SD Gothic Neo, "Noto Sans KR", sans-serif;
+      background:
+        radial-gradient(900px 500px at 10% 0%, rgba(79,70,229,.16), transparent 60%),
+        radial-gradient(700px 420px at 90% 10%, rgba(34,197,94,.10), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      margin:0;
+      padding:24px;
+    }
+    .wrap{ max-width: 980px; margin: 0 auto; }
+
+    h1{ margin: 0 0 6px; font-size: 24px; letter-spacing: -0.02em; }
+    .subtitle{ color:var(--muted); margin:0 0 18px; }
+
+    .card{
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(230,232,239,.85);
+      border-radius:var(--radius);
+      padding:16px;
+      margin:14px 0;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .topbar{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .apiBox{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex:1;
+      min-width: 280px;
+    }
+    .apiBox label{ font-size:12px; color:var(--muted); }
+    input, textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid #d7dbe7;
+      outline:none;
+      background:#fff;
+    }
+    input:focus, textarea:focus{
+      border-color: rgba(79,70,229,.55);
+      box-shadow: 0 0 0 4px rgba(79,70,229,.10);
+    }
+    textarea{ resize: vertical; }
+
+    .btn{
+      padding:10px 14px;
+      border-radius:12px;
+      border:1px solid #d7dbe7;
+      background:#fff;
+      cursor:pointer;
+      font-weight:700;
+      transition: transform .06s ease, filter .12s ease;
+    }
+    .btn:hover{ filter:brightness(.985); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      background: linear-gradient(135deg, var(--ink), #1f2937);
+      color:#fff;
+      border-color: rgba(17,24,39,.90);
+    }
+    .btn.ghost{
+      background: rgba(79,70,229,.06);
+      border-color: rgba(79,70,229,.18);
+      color: #3730a3;
+      font-weight:800;
+    }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .status{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      background:#fbfbfd;
+      font-size:13px;
+    }
+    .status.ok{ color:#065f46; background:#ecfdf5; border-color:#a7f3d0; }
+    .status.warn{ color:#92400e; background:#fffbeb; border-color:#fde68a; }
+    .status.info{ color:#1f2937; background:#f3f4f6; border-color:#e5e7eb; }
+
+    .pill{
+      display:inline-block;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#fff;
+      font-size:12px;
+      color:#374151;
+      margin:0 2px;
+    }
+    .pill.null{ color:#9ca3af; background:#fafafa; }
+    .pill.score{ border-color:#c7d2fe; background:#eef2ff; color:#3730a3; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+
+    .stepHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .stepLabel{ font-size:12px; color:var(--muted); }
+    .stepTitle{ font-size:16px; font-weight:900; }
+    .badge{
+      font-size:12px;
+      color:var(--muted);
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:#fff;
+    }
+
+    .optRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:12px 12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      margin:10px 0;
+      background:#fff;
+    }
+    .optRow:hover{ background:#f3f5ff; border-color:#dbe1ff; }
+    .optLeft{ display:flex; flex-direction:column; gap:2px; }
+    .optTitle{ font-weight:900; }
+    .optSub{ font-size:12px; color:var(--muted); }
+
+    .helpBar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px;
+      border:1px dashed rgba(79,70,229,.38);
+      border-radius:14px;
+      background: rgba(79,70,229,.06);
+      margin:10px 0 14px;
+    }
+    .helpTitle{ font-weight:900; }
+    .helpSub{ font-size:12px; color:#3730a3; opacity:.9; }
+
+    .qList{
+      list-style:none;
+      padding:0;
+      margin:0 0 10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .qList li{
+      display:flex;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#fff;
+      align-items:flex-start;
+    }
+    .qNo{
+      font-weight:900;
+      color:var(--accent);
+      min-width: 20px;
+    }
+    .qText{ color:#111827; }
+
+    .skeleton{
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:linear-gradient(90deg,#f3f4f6,#ffffff,#f3f4f6);
+      background-size:200% 100%;
+      animation: shimmer 1.2s infinite;
+      color:var(--muted);
+    }
+    @keyframes shimmer{
+      0%{ background-position:0% 0; }
+      100%{ background-position:-200% 0; }
+    }
+
+    .recGrid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 880px){
+      .recGrid{ grid-template-columns: 1fr; }
+    }
+    .recCard{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+    }
+    .recTitle{ font-weight:900; margin-bottom:6px; }
+    .recMeta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+    .recLink{ display:inline-block; font-size:13px; color:#2563eb; text-decoration:none; margin-bottom:10px; }
+    .recLink:hover{ text-decoration:underline; }
+    .muted{ color:var(--muted); }
+
+    /* ===== Final Result ===== */
+    .finalHeader{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+    .finalHeader .left .t{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom: 2px;
+    }
+    .finalHeader .left #finalTitle{
+      font-weight:900;
+      font-size: 14px;
+      color: #0f172a;
+    }
+    .finalHeader .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .finalLoading{
+      display:none;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(79,70,229,.22);
+      background: rgba(79,70,229,.05);
+      margin-top: 10px;
+    }
+    .spinner{
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 2px solid rgba(15,23,42,.16);
+      border-top-color: rgba(79,70,229,.95);
+      animation: spin .9s linear infinite;
+    }
+    @keyframes spin{ to{ transform: rotate(360deg);} }
+    .finalLoading .msg{ font-weight:900; }
+    .finalLoading .time{
+      margin-left:auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: #334155;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(2,6,23,.10);
+      background: rgba(255,255,255,.75);
+    }
+
+    .finalReport{
+      display:none;
+      margin-top: 12px;
+      padding: 16px 18px;
+      border: 1px solid rgba(79,70,229,.18);
+      border-radius: 14px;
+      background:
+        radial-gradient(650px 220px at 20% 0%, rgba(79,70,229,.08), transparent 60%),
+        #ffffff;
+      line-height: 1.65;
+    }
+    .finalReport .md h1, .finalReport .md h2, .finalReport .md h3{
+      margin: 14px 0 8px;
+      line-height: 1.25;
+    }
+    .finalReport .md h1{
+      font-size: 20px;
+      letter-spacing:-0.02em;
+    }
+    .finalReport .md h2{ font-size: 17px; }
+    .finalReport .md h3{ font-size: 14px; color:#111827; }
+    .finalReport .md p{ margin: 8px 0; color:#0f172a; }
+    .finalReport .md ul, .finalReport .md ol{ margin: 8px 0 8px 22px; }
+    .finalReport .md li{ margin: 4px 0; }
+    .finalReport .md hr{ border: none; border-top: 1px solid #eee; margin: 12px 0; }
+    .finalReport .md blockquote{
+      margin: 10px 0;
+      padding: 8px 12px;
+      border-left: 4px solid rgba(79,70,229,.55);
+      background: rgba(79,70,229,.04);
+      color:#0f172a;
+      border-radius: 10px;
+    }
+    .finalReport .md code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: rgba(15,23,42,.06);
+      padding: 1px 6px;
+      border-radius: 6px;
+    }
+
+    pre{
+      display:none;
+      white-space: pre-wrap;
+      background:#0b1020;
+      color:#e5e7eb;
+      padding:12px;
+      border-radius:14px;
+      overflow:auto;
+      border:1px solid rgba(255,255,255,.06);
+      margin-top: 12px;
+    }
+
+    .emptyBox{
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--muted);
+    }
+
+    /* small helper */
+    .rowGap{ height: 10px; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>교통사고 과실비율 PoC</h1>
+    <p class="subtitle">룰 트리(MySQL) + HELP 추천(Neo4j 벡터검색) + 최종 결과(LLM 요약)</p>
+
+    <div class="card">
+      <div class="topbar">
+        <div class="apiBox">
+          <div style="min-width:72px">
+            <label>API_BASE</label>
+          </div>
+          <input id="apiBase" value="http://127.0.0.1:8000" />
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn primary" id="btnInit">시작</button>
+          <button class="btn" id="btnReset">리셋</button>
+        </div>
+      </div>
+
+      <div id="stateView" class="status info"></div>
+      <div id="statusBar" class="status info">대기중…</div>
+    </div>
+
+    <div class="card">
+      <h3 id="stepTitle">선택지</h3>
+      <div id="options"></div>
+    </div>
+
+    <div class="card" id="helpCard" style="display:none;">
+      <h3 style="margin-top:0;">도움 질문</h3>
+      <div class="muted" style="margin-bottom:8px;">
+        질문을 참고해 사고 상황을 1~2문장으로 적어주세요.
+      </div>
+
+      <div id="helpQuestions"></div>
+
+      <div style="margin:10px 0;">
+        <textarea id="userNote" rows="4" placeholder="예) 교차로에서 A는 직진(녹색), B는 좌회전(황색) 중 측면 충돌"></textarea>
+      </div>
+
+      <button class="btn primary" id="btnRecommend">추천받기</button>
+
+      <div class="rowGap"></div>
+      <h4 style="margin:0 0 8px;">추천 결과</h4>
+      <div id="recommendResult"></div>
+    </div>
+
+    <div class="card">
+      <div class="finalHeader">
+        <div class="left">
+          <div class="t">최종 결과</div>
+          <div id="finalTitle" class="muted">아직 없음</div>
+        </div>
+        <div class="actions">
+          <button class="btn ghost" id="toggleJson">원본 JSON 보기</button>
+        </div>
+      </div>
+
+      <div id="finalLoading" class="finalLoading">
+        <div class="spinner"></div>
+        <div class="msg">LLM 요약 생성 중…</div>
+        <div class="time" id="finalLoadingTime">0s</div>
+      </div>
+
+      <div id="finalReport" class="finalReport"></div>
+      <pre id="finalJson">{}</pre>
+    </div>
+
+    <script src="./app.js"></script>
+  </div>
+</body>
+</html>

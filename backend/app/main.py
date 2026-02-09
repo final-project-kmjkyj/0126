@@ -1,61 +1,34 @@
-"""
-backend/app/main.py
-
-[역할]
-- FastAPI 앱 엔트리포인트
-- 라우터(step1_tree, step2_graph) 등록
-- 헬스체크 제공
-
-[입력]
-- HTTP 요청
-
-[출력]
-- JSON 응답
-
-[주의]
-- 비즈니스 로직(판단/검색)은 절대 여기서 하지 않음
-"""
-
-
-# backend/app/main.py
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes.step1_tree import router as step1_router
-from app.api.routes.step2_graph import router as step2_router
+from app.core.env import load_env
 
+load_env()
 
-# =========================================================
-# FastAPI App 생성
-# =========================================================
-app = FastAPI(
-    title="Accident Liability Decision API",
-    description="근거 기반 교통사고 과실비율 판단 보조 시스템",
-    version="0.1.0",
+app = FastAPI()
+
+# CORS (프론트 분리면 일단 전체 허용)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
+# ✅ routes가 app/api/routes 밑에 있으니 여기로 import
+from app.api.routes.tree import router as tree_router
+from app.api.routes.help import router as help_router
+from app.api.routes.cases import router as case_router
+from app.api.routes.infra import router as infra_router
+# (있으면) from app.api.routes.labels import router as labels_router
 
-# =========================================================
-# Router 등록
-# =========================================================
-app.include_router(step1_router)
-app.include_router(step2_router)
+app.include_router(tree_router)
+app.include_router(help_router)
+app.include_router(case_router)
+app.include_router(infra_router)
+# app.include_router(labels_router)
 
-
-# =========================================================
-# Health Check
-# =========================================================
-@app.get(
-    "/health",
-    summary="헬스 체크",
-)
-def health_check():
-    """
-    서버 상태 확인용 엔드포인트
-    - 로직/DB/Neo4j 접근 없음
-    """
-    return {
-        "status": "ok",
-        "service": "accident-liability-api",
-    }
-
+@app.get("/health")
+def health():
+    return {"ok": True}
