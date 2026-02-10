@@ -1,13 +1,26 @@
 # backend/app/services/tree_service.py
 from __future__ import annotations
-
+from app.repositories.neo4j_repo import Neo4jRepository
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Union
 
 from app.repositories.mysql_repo import MySQLCasesRepo, CaseTitle
 from app.repositories.neo4j_repo import Neo4jRepository, RouteState
 
+class TreeService:
+    def __init__(self):
+        self.neo4j = Neo4jRepository()
+        ...
+    
+    def case_detail(self, case_code: str):
+        detail = self.mysql_repo.get_case_detail(case_code)
 
+        # 🔽 여기 추가
+        modifiers = self.neo4j.get_common_modifiers(case_code)
+        detail["common_modifiers"] = modifiers
+
+        return detail
+    
 @dataclass
 class TreeState:
     domain_l1: str

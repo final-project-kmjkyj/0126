@@ -133,6 +133,24 @@ class Neo4jRepository: # 모르겠어요 누르면 route 버킷 범위 내에서
         (추후) Law/Precedent/Modifier 노드화 했을 때 1~2 hop 확장.
         지금 MVP에서는 MySQL 정본 조회로 충분하므로 TODO.
         """
-        return {"seed_case_code": seed_case_code, "hop": hop, "nodes": [], "rels": []}       
+        return {"seed_case_code": seed_case_code, "hop": hop, "nodes": [], "rels": []}
+    
+    def get_modifier(self, code: str):
+        cypher = """
+        MATCH (m:Modifier {code: $code})
+        RETURN
+          m.code AS code,
+          m.name AS name,
+          m.range AS range,
+          m.apply_rules AS apply_rules,
+          m.examples AS examples
+        """
+        with self.driver.session() as s:
+            row = s.run(cypher, {"code": code}).single()
+        return dict(row) if row else None
+
+    
+
+           
 
 

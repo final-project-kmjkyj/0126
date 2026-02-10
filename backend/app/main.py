@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.routes import modifiers
+
 
 from app.core.env import load_env
 
 load_env()
 
 app = FastAPI()
-
+app.include_router(modifiers.router)
 # CORS (프론트 분리면 일단 전체 허용)
 app.add_middleware(
     CORSMiddleware,

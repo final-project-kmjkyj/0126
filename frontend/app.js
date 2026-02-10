@@ -1,8 +1,8 @@
 // app.js
-// - 디자인 개선(HTML/CSS 쪽)
-// - LLM 생성 중 로딩/경과시간 표시
-// - 불필요한 자동 호출 제거 (버튼 클릭 때만 추천/확정)
-// - final_report_md / final_report_text 우선 표시
+// - LLM 리포트 + 가감요소(adjustment_text) 표시
+// - "현저한 과실/중대한 과실" 자세히보기 버튼(Neo4j Modifier API)
+// - 모달 UI
+// - 레이스 방지(activeReqId) 유지
 
 window.state = {
   domain_l1: null,
@@ -12,8 +12,6 @@ window.state = {
 };
 
 let routeLabels = {}; // route_labels_ko.json 로딩해서 채움
-
-// (선택) 레이스 방지: 가장 마지막 요청만 화면 반영
 let activeReqId = 0;
 
 function $(id) { return document.getElementById(id); }
@@ -39,7 +37,7 @@ function renderState() {
 }
 
 // ============================
-// 한글 라벨 로드
+// 라벨 로드
 // ============================
 async function loadLabels() {
   try {
@@ -79,7 +77,6 @@ async function postJSON(path, payload) {
   }
 
   const data = await res.json();
-  // 최신 요청만 반영
   if (reqId !== activeReqId) return { __stale: true, data };
   return { __stale: false, data };
 }
@@ -149,12 +146,169 @@ function hideFinalLoading() {
   loadingTimer = null;
 }
 
+// ============================
+// (NEW) 가감요소 렌더 + 자세히보기 버튼
+// ============================
+function renderAdjustmentText(text) {
+  if (!text || !String(text).trim()) {
+    return "<div class='emptyBox'>가감요소 정보 없음</div>";
+  }
+
+  const lines = String(text)
+    .split("\n")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  return `
+    <div class="adjBox">
+      ${lines.map(line => {
+        const safe = escapeHtml(line);
+
+        const hasNotice = line.includes("현저한 과실");
+        const hasMajor = line.includes("중대한 과실");
+
+        const btnNotice = hasNotice
+          ? ` <button class="btn ghost mini" data-mod="NOTICEABLE_FAULT">자세히보기</button>`
+          : "";
+        const btnMajor = hasMajor
+          ? ` <button class="btn ghost mini" data-mod="MAJOR_FAULT">자세히보기</button>`
+          : "";
+
+        return `<div class="adjRow">${safe}${btnNotice}${btnMajor}</div>`;
+      }).join("")}
+    </div>
+  `;
+}
+
+// "자세히보기" 이벤트는 innerHTML 이후에 바인딩해야 함
+function bindModifierButtons(rootEl) {
+  rootEl.querySelectorAll("button[data-mod]").forEach((btn) => {
+    btn.onclick = async () => {
+      const code = btn.getAttribute("data-mod");
+      await openModifier(code);
+    };
+  });
+}
+
+// ============================
+// (NEW) 모달
+// ============================
+function ensureModalStyles() {
+  // index.html 안 바꿔도 되게, 모달 최소 CSS를 JS에서 주입
+  if (document.getElementById("__modal_style")) return;
+  const style = document.createElement("style");
+  style.id = "__modal_style";
+  style.innerHTML = `
+    #modal{ display:none; position:fixed; inset:0; z-index:9999; }
+    #modal .modalBg{ position:absolute; inset:0; background:rgba(0,0,0,.45); }
+    #modal .modalCard{
+      position:relative;
+      max-width: 720px;
+      margin: 8vh auto;
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 16px 50px rgba(0,0,0,.22);
+      padding: 16px;
+    }
+    #modal .modalTop{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    #modal .modalTop .title{ font-weight: 900; }
+    #modal .modalBody{ margin-top: 12px; line-height: 1.65; }
+    #modal .closeBtn{ padding:8px 12px; border-radius:10px; border:1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:800; }
+    #modal h3{ margin: 0 0 8px; }
+    #modal h4{ margin: 12px 0 6px; }
+    #modal ul{ margin: 6px 0 10px 18px; }
+    .btn.mini{ padding: 6px 10px; border-radius: 10px; font-size: 12px; font-weight: 900; }
+    .adjBox{ margin-top: 10px; display:flex; flex-direction:column; gap:8px; }
+    .adjRow{
+      padding: 10px 12px;
+      border: 1px solid #e6e8ef;
+      border-radius: 12px;
+      background: #fff;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .adjRow button{ white-space: nowrap; }
+  `;
+  document.head.appendChild(style);
+}
+
+function showModal(title, innerHtml) {
+  ensureModalStyles();
+
+  let modal = document.getElementById("modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "modal";
+    modal.innerHTML = `
+      <div class="modalBg"></div>
+      <div class="modalCard" role="dialog" aria-modal="true">
+        <div class="modalTop">
+          <div class="title" id="modalTitle"></div>
+          <button class="closeBtn" id="modalCloseBtn">닫기</button>
+        </div>
+        <div class="modalBody" id="modalBody"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.querySelector(".modalBg").onclick = closeModal;
+    modal.querySelector("#modalCloseBtn").onclick = closeModal;
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+  }
+
+  document.getElementById("modalTitle").innerText = title || "상세";
+  document.getElementById("modalBody").innerHTML = innerHtml;
+  modal.style.display = "block";
+}
+
+function closeModal() {
+  const modal = document.getElementById("modal");
+  if (modal) modal.style.display = "none";
+}
+
+// ============================
+// (NEW) Modifier 상세 조회
+// ============================
+async function openModifier(code) {
+  try {
+    const { __stale, data } = await getJSON(`/modifiers/${encodeURIComponent(code)}`);
+    if (__stale) return;
+
+    const rules = (data.apply_rules || []).map(r => `<li>${escapeHtml(r)}</li>`).join("");
+    const ex = (data.examples || []).map(e => `<li>${escapeHtml(e)}</li>`).join("");
+
+    const html = `
+      <div>
+        <div class="pill score" style="display:inline-block;margin-bottom:8px;">${escapeHtml(data.kind || "MODIFIER")}</div>
+        <h3 style="margin:0 0 8px;">${escapeHtml(data.name || "-")} <span class="mono">(${escapeHtml(data.range || "-")})</span></h3>
+        <h4>적용 원칙</h4>
+        <ul>${rules || "<li>(없음)</li>"}</ul>
+        <h4>적용 예시</h4>
+        <ul>${ex || "<li>(없음)</li>"}</ul>
+      </div>
+    `;
+
+    showModal(data.name || code, html);
+  } catch (e) {
+    console.error(e);
+    alert("가감요소 설명을 불러오지 못했습니다. (백엔드 /modifiers/{code} 확인)");
+  }
+}
+
+// ============================
+// 버튼 비활성화
+// ============================
 function setButtonsDisabled(disabled) {
   ["btnInit", "btnReset", "btnRecommend", "toggleJson"].forEach((id) => {
     const el = $(id);
     if (el) el.disabled = disabled;
   });
-  // 옵션 버튼도 같이
   document.querySelectorAll("button.btn").forEach((b) => {
     b.disabled = disabled;
   });
@@ -247,7 +401,6 @@ async function treeNext() {
   }
 
   options.forEach((opt) => {
-    // title 단계: {case_code,title}
     if (typeof opt === "object" && opt.case_code && opt.title) {
       const row = createOptionRow({
         leftTitle: opt.title,
@@ -360,7 +513,7 @@ async function recommend() {
 }
 
 // ============================
-// case detail (LLM 포함)
+// case detail (LLM 포함) + (NEW) 가감요소 표시
 // ============================
 async function loadCaseDetail(case_code) {
   setButtonsDisabled(true);
@@ -374,23 +527,28 @@ async function loadCaseDetail(case_code) {
     console.log("[/cases/{case_code}]", data);
 
     $("finalTitle").innerText = `✅ ${data.title} (${data.case_code})`;
-
-    // JSON
     $("finalJson").innerText = JSON.stringify(data, null, 2);
 
-    // LLM report
     const reportEl = $("finalReport");
+    reportEl.style.display = "block";
 
+    // 1) LLM 리포트
     if (data.final_report_md) {
-      reportEl.style.display = "block";
       reportEl.innerHTML = renderMarkdownLite(data.final_report_md);
     } else if (data.final_report_text) {
-      reportEl.style.display = "block";
       reportEl.innerHTML = `<div class="md"><p>${escapeHtml(data.final_report_text).replace(/\n/g, "<br/>")}</p></div>`;
     } else {
-      reportEl.style.display = "block";
-      reportEl.innerHTML = `<div class="emptyBox">LLM 리포트가 비어있어요. (백엔드에서 final_report_md 또는 final_report_text 내려주는지 확인)</div>`;
+      reportEl.innerHTML = `<div class="emptyBox">LLM 리포트가 비어있어요. (final_report_md 또는 final_report_text 확인)</div>`;
     }
+
+    // 2) (NEW) 가감요소 섹션
+    reportEl.innerHTML += `
+      <hr/>
+      <h3>과실 최종 확정 전, 이런 수정요소를 확인하세요</h3>
+      <div class="muted">상황에 따라 과실이 달라질 수 있습니다.</div>
+      ${renderAdjustmentText(data.adjustment_text)}
+    `;
+    bindModifierButtons(reportEl);
 
     setStatus("최종 결과를 표시했어요.", "ok");
   } catch (e) {
@@ -405,33 +563,26 @@ async function loadCaseDetail(case_code) {
 }
 
 // 아주 라이트한 마크다운 렌더 (외부 라이브러리 없이)
-// - 헤딩(#/##/###), 굵게(**), 코드(``), 리스트(-), 링크(http)
 function renderMarkdownLite(md) {
   const esc = (s) => String(s)
     .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 
   let html = esc(md);
 
-  // inline
   html = html
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 
-  // headings
   html = html
     .replace(/^### (.*)$/gm, "<h3>$1</h3>")
     .replace(/^## (.*)$/gm, "<h2>$1</h2>")
     .replace(/^# (.*)$/gm, "<h1>$1</h1>");
 
-  // unordered list
   html = html
     .replace(/^\- (.*)$/gm, "<li>$1</li>")
     .replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`);
 
-  // link
   html = html.replace(/(https?:\/\/[^\s)]+)\b/g, `<a href="$1" target="_blank" rel="noreferrer">$1</a>`);
-
-  // line breaks
   html = html.replace(/\n/g, "<br/>");
 
   return `<div class="md">${html}</div>`;
